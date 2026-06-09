@@ -1,5 +1,3 @@
-credit_risk_app.py
-@@ -0,0 +1,102 @@
 import streamlit as st
 import pandas as pd
 import joblib
