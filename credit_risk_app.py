@@ -15,13 +15,41 @@ st.markdown("**Final XGBoost Model with SHAP Explainability**")
 def load_model():
     return joblib.load('final_credit_risk_model.pkl')
 
-model = load_model()   # ← This fixes all "model is not defined" errors
+model = load_model()
+
+
+def build_shap_explainer(model, sample_data):
+    try:
+        return shap.Explainer(model.predict_proba, sample_data)
+    except Exception:
+        return shap.Explainer(model, sample_data)
+
+
+def get_class_shap_values(shap_values):
+    if hasattr(shap_values, 'values') and shap_values.values.ndim == 3:
+        return shap_values[:, 1]
+    return shap_values
+
+
+def plot_shap_bar(shap_values):
+    fig, ax = plt.subplots(figsize=(10, 5))
+    shap.plots.bar(shap_values, max_display=10, show=False)
+    st.pyplot(fig)
+    plt.close(fig)
+
+
+def plot_shap_summary(shap_values, input_data):
+    fig, ax = plt.subplots(figsize=(10, 6))
+    shap.summary_plot(shap_values.values, input_data, show=False)
+    st.pyplot(fig)
+    plt.close(fig)
+
 
 tab1, tab2 = st.tabs(["🔍 Single Customer", "📊 Batch Scoring"])
 
 with tab1:
     st.sidebar.header("Customer Details")
-    
+
     age = st.sidebar.slider("Age", 18, 75, 28)
     duration = st.sidebar.slider("Loan Duration (months)", 6, 72, 48)
     amount = st.sidebar.number_input("Loan Amount", 500, 25000, 8500)
@@ -35,12 +63,22 @@ with tab1:
     if st.button("🚀 Calculate PD + Explanation", type="primary"):
         with st.spinner("Analyzing..."):
             input_data = pd.DataFrame([{
-                'duration': duration, 'amount': amount, 'age': age,
-                'installment_rate': installment_rate, 'existing_credits': existing_credits,
-                'status': status, 'credit_history': credit_history, 'purpose': purpose,
-                'savings': 'unknown', 'employment': '1-4 years', 'personal_status': 'male single',
-                'other_debtors': 'none', 'property': 'real estate', 'housing': 'own',
-                'job': 'skilled', 'foreign_worker': 'yes'
+                'duration': duration,
+                'amount': amount,
+                'age': age,
+                'installment_rate': installment_rate,
+                'existing_credits': existing_credits,
+                'status': status,
+                'credit_history': credit_history,
+                'purpose': purpose,
+                'savings': 'unknown',
+                'employment': '1-4 years',
+                'personal_status': 'male single',
+                'other_debtors': 'none',
+                'property': 'real estate',
+                'housing': 'own',
+                'job': 'skilled',
+                'foreign_worker': 'yes'
             }])
 
             prob = model.predict_proba(input_data)[:, 1][0]
@@ -57,7 +95,27 @@ with tab1:
 
             st.progress(float(prob))
 
-            st.info("**Risk Explanation:** Long duration, large amount, and poor credit status are main contributors.")
+            explainer = build_shap_explainer(model, input_data)
+            shap_values = get_class_shap_values(explainer(input_data))
+
+            st.subheader("SHAP Explanation")
+            st.markdown("Feature contributions are shown for the predicted default probability.")
+            plot_shap_bar(shap_values)
+
+            st.subheader("SHAP Summary Chart")
+            st.markdown("This chart shows the feature impact distribution for the current prediction.")
+            plot_shap_summary(shap_values, input_data)
+
+            shap_df = pd.DataFrame({
+                'feature': input_data.columns,
+                'feature_value': input_data.iloc[0].values,
+                'shap_value': shap_values.values[0]
+            })
+            shap_df['impact'] = shap_df['shap_value'].apply(lambda x: 'increase' if x > 0 else 'decrease')
+            shap_df = shap_df.reindex(shap_df['shap_value'].abs().sort_values(ascending=False).index)
+
+            st.write("Top feature impacts:")
+            st.dataframe(shap_df[['feature', 'feature_value', 'shap_value', 'impact']].head(6).reset_index(drop=True))
 
 with tab2:
     st.header("Batch Scoring")
