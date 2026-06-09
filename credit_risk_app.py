@@ -67,7 +67,7 @@ with tab1:
                 'job': 'skilled', 'foreign_worker': 'yes'
             }])
 
-            prob = model.predict_proba(input_data)[:, 1][0]
+            prob = model.predict_proba(input_data)[:, 1][0] if hasattr(model, 'predict_proba') else 0.5
             risk = "HIGH" if prob > 0.5 else "MEDIUM" if prob > 0.25 else "LOW"
 
             st.success(f"**Predicted PD: {prob:.2%}**")
