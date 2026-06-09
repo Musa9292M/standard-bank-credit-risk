@@ -39,10 +39,15 @@ def plot_shap_bar(shap_values):
 
 
 def plot_shap_summary(shap_values, input_data):
-    fig, ax = plt.subplots(figsize=(10, 6))
-    shap.summary_plot(shap_values.values, input_data, show=False)
-    st.pyplot(fig)
-    plt.close(fig)
+    try:
+        plt.figure(figsize=(10, 6))
+        shap.summary_plot(shap_values, input_data, plot_type='bar', show=False)
+        st.pyplot(plt.gcf())
+    except Exception as exc:
+        st.warning("Unable to render SHAP summary chart for this prediction.")
+        st.write(str(exc))
+    finally:
+        plt.close()
 
 
 tab1, tab2 = st.tabs(["🔍 Single Customer", "📊 Batch Scoring"])
