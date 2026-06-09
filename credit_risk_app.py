@@ -1,11 +1,28 @@
 import streamlit as st
 import pandas as pd
 import joblib
-import shap
-import matplotlib.pyplot as plt
 import warnings
 warnings.filterwarnings('ignore')
 
+# ====================== PASSWORD ======================
+PASSWORD = "StandardBank2026"
+
+if 'authenticated' not in st.session_state:
+    st.session_state.authenticated = False
+
+if not st.session_state.authenticated:
+    st.title("🔐 Standard Bank Credit Risk Predictor")
+    st.markdown("### Enter Password to Access")
+    password = st.text_input("Password", type="password")
+    if st.button("Login"):
+        if password == PASSWORD:
+            st.session_state.authenticated = True
+            st.rerun()
+        else:
+            st.error("Incorrect password")
+    st.stop()
+
+# ====================== APP ======================
 st.set_page_config(page_title="Standard Bank Credit Risk", layout="wide")
 
 st.title("🏦 Standard Bank Credit Risk Predictor")
@@ -15,7 +32,7 @@ st.markdown("**Final XGBoost Model with SHAP Explainability**")
 def load_model():
     return joblib.load('final_credit_risk_model.pkl')
 
-model = load_model()   # ← This fixes all "model is not defined" errors
+model = load_model()
 
 tab1, tab2 = st.tabs(["🔍 Single Customer", "📊 Batch Scoring"])
 
@@ -57,8 +74,6 @@ with tab1:
 
             st.progress(float(prob))
 
-            st.info("**Risk Explanation:** Long duration, large amount, and poor credit status are main contributors.")
-
 with tab2:
     st.header("Batch Scoring")
     uploaded_file = st.file_uploader("Upload Excel or CSV", type=['xlsx', 'csv'])
@@ -74,4 +89,4 @@ with tab2:
                 st.dataframe(df)
                 st.download_button("Download Results", df.to_csv(index=False), "batch_results.csv", "text/csv")
 
-st.caption("Fixed Version | Stable Model Loading")
+st.caption("Standard Bank Credit Risk Predictor | Musa Vilakazi")
