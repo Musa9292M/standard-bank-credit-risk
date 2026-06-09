@@ -115,7 +115,7 @@ with tab2:
         if st.button("Score All Customers"):
             with st.spinner("Scoring batch..."):
                                 # Fixed line 117
-                predictions = model.predict_proba(df)[:, 1] if hasattr(model, 'predict_proba') else [0.5] * len(df)
+                                predictions = model.predict_proba(df)[:, 1] if hasattr(model, 'predict_proba') else [0.5] * len(df)
                 df['PD_Score'] = predictions.round(4)
                 df['Risk_Level'] = pd.cut(predictions, bins=[0, 0.25, 0.5, 1], labels=['Low', 'Medium', 'High'])
                 st.success(f"Scored {len(df)} customers")
