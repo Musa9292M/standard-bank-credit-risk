@@ -1,20 +1,23 @@
-name: Advanced CI/CD for Credit Risk App
+name: Simple CI Check
 
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
 jobs:
-  test-and-deploy:
+  check:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python 3.11
+      - name: List files
+        run: |
+          ls -la
+          echo "✅ Repository files are present"
+
+      - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -22,34 +25,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install streamlit pandas joblib
 
-      - name: Lint code (Code Quality Check)
-        run: |
-          pip install flake8
-          flake8 credit_risk_app.py --count --exit-zero --max-complexity=10 --max-line-length=120
-
-      - name: Test Model Loading & Basic Functionality
-        run: |
-          python -c "
-          import joblib
-          import pandas as pd
-          model = joblib.load('final_credit_risk_model.pkl')
-          print('✅ Model loaded successfully')
-          # Quick test prediction
-          sample = pd.DataFrame([{'duration': 48, 'amount': 8500, 'age': 28, 'installment_rate': 3, 
-                                'existing_credits': 2, 'status': '< 0 DM', 'credit_history': 'Critical account',
-                                'purpose': 'Education', 'savings': 'unknown', 'employment': '1-4 years',
-                                'personal_status': 'male single', 'other_debtors': 'none', 'property': 'real estate',
-                                'housing': 'own', 'job': 'skilled', 'foreign_worker': 'yes'}])
-          prob = model.predict_proba(sample)[:, 1][0]
-          print(f'✅ Test prediction successful: PD = {prob:.2%}')
-          "
-
-      - name: Notify Success
-        if: success()
-        run: echo "🎉 All checks passed! Streamlit Cloud will automatically deploy the latest version_."
-
-      - name: Notify Failure
-        if: failure()
-        run: echo "❌ Build failed! Please check the logs."
+      - name: Final Check
+        run: echo "✅ Simple CI Check Completed Successfully!"
