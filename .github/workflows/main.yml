@@ -3,6 +3,8 @@ name: Simple CI Check
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   check:
@@ -22,8 +24,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: List files
-        run: ls -la
-
-      - name: Success Message
-        run: echo "✅ Workflow completed successfully!"
+      - name: Check project files
+        run: |
+          ls -la
+          echo "✅ Project files are present"
+          echo "✅ Workflow completed successfully"
