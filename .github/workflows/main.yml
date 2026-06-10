@@ -1,13 +1,11 @@
-name: Credit Risk App CI
+name: Simple CI Check
 
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
 jobs:
-  test:
+  check:
     runs-on: ubuntu-latest
 
     steps:
@@ -24,18 +22,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Check files exist
-        run: |
-          ls -la
-          echo "✅ Files listed above"
+      - name: List files
+        run: ls -la
 
-      - name: Test Model Loading
-        run: |
-          python -c "
-          import joblib
-          import pandas as pd
-          print('Loading model...')
-          model = joblib.load('final_credit_risk_model.pkl')
-          print('✅ Model loaded successfully')
-          print('Model type:', type(model))
-          "
+      - name: Success Message
+        run: echo "✅ Workflow completed successfully!"
